@@ -1,6 +1,6 @@
 const MINT = "H6qnGp5anYgMJYAaPXKSqKVYa6mKDrn1ruAeK5Dmbonk";
 const BUYBACK_WALLET = "D9FXcMojKz4HLtjWVJX25dK2QDE5mt6sPSSd3FXFoAQC";
-const RPC_URL = "https://api.mainnet-beta.solana.com";
+const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=0409e091-70b4-428e-a4bd-52b64f4f9aee";
 
 async function getCirculatingSupply() {
   // Total supply
