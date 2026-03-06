@@ -1,54 +1,40 @@
 const MINT = "H6qnGp5anYgMJYAaPXKSqKVYa6mKDrn1ruAeK5Dmbonk";
 const BUYBACK_WALLET = "D9FXcMojKz4HLtjWVJX25dK2QDE5mt6sPSSd3FXFoAQC";
-const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=0409e091-70b4-428e-a4bd-52b64f4f9aee";
+const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=0409e091-70b4-428e-a4bd-52b76be83edd";
+
+async function rpc(id, method, params) {
+  const res = await fetch(RPC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id, method, params })
+  });
+  const data = await res.json();
+  if (data.error) throw new Error(`RPC ${method} error: ${JSON.stringify(data.error)}`);
+  return data.result;
+}
 
 async function getCirculatingSupply() {
-  // Total supply
-  const totalRes = await fetch(RPC_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0', id: 1,
-      method: 'getTokenSupply',
-      params: [MINT, { encoding: 'jsonParsed' }]
-    })
-  });
-  const totalData = await totalRes.json();
-  const total = parseFloat(totalData.result?.value?.uiAmount || 0);
+  const supplyResult = await rpc(1, 'getTokenSupply', [MINT]);
+  const total = parseFloat(supplyResult.value.uiAmountString);
 
-  // ATA buyback
-  const ataRes = await fetch(RPC_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      jsonrpc: '2.0', id: 2,
-      method: 'getTokenAccountsByOwner',
-      params: [BUYBACK_WALLET, {
-        mint: MINT,
-        programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
-      }, { encoding: 'jsonParsed' }]
-    })
-  });
-  const ataData = await ataRes.json();
+  const ataResult = await rpc(2, 'getTokenAccountsByOwner', [
+    BUYBACK_WALLET,
+    { mint: MINT },
+    { encoding: 'jsonParsed' }
+  ]);
+
   let buyback = 0;
-  if (ataData.result?.value?.length > 0) {
-    const balanceRes = await fetch(RPC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        jsonrpc: '2.0', id: 3,
-        method: 'getTokenAccountBalance',
-        params: [ataData.result.value[0].pubkey]
-      })
-    });
-    const balanceData = await balanceRes.json();
-    buyback = parseFloat(balanceData.result?.value?.uiAmount || 0);
+  if (ataResult.value.length > 0) {
+    const ata = ataResult.value[0].pubkey;
+    const balResult = await rpc(3, 'getTokenAccountBalance', [ata]);
+    buyback = parseFloat(balResult.value.uiAmountString);
   }
 
   const circulating = total - buyback;
   return {
     mint: MINT,
     totalSupply: total,
+    buybackWallet: BUYBACK_WALLET,
     buybackBalance: buyback,
     circulatingSupply: circulating,
     buybackPercentage: total > 0 ? ((buyback / total) * 100).toFixed(2) + '%' : '0%'
