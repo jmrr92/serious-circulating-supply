@@ -1,6 +1,6 @@
 const MINT = "H6qnGp5anYgMJYAaPXKSqKVYa6mKDrn1ruAeK5Dmbonk";
 const BUYBACK_WALLET = "D9FXcMojKz4HLtjWVJX25dK2QDE5mt6sPSSd3FXFoAQC";
-const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=0409e091-70b4-428e-a4bd-52b76be83edd";
+const RPC_URL = "https://mainnet.helius-rpc.com/?api-key=93cda123-5b97-4689-a10a-c4f5859a5df4";
 
 async function rpc(id, method, params) {
   const res = await fetch(RPC_URL, {
